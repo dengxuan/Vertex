@@ -1,0 +1,24 @@
+// Licensed to the Gordon under one or more agreements.
+// Gordon licenses this file to you under the MIT license.
+
+syntax = "proto3";
+
+package vertex.compat.hello_reverse_rpc.v1;
+
+option csharp_namespace = "Vertex.Compat.HelloReverseRpc.V1";
+option go_package = "vertex-hello-reverse-rpc-compat/gen;gen";
+
+// Reverse-direction RPC: .NET is the caller, Go is the handler.
+// Request travels server → client; response travels client → server.
+// This exercises the same 4-frame envelope wire protocol as hello-rpc but
+// in the opposite direction, and catches any bugs in the server-side
+// InvokeAsync / client-side HandleRequest dispatch paths that hello-rpc
+// did not touch.
+
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloResponse {
+  string greeting = 1;
+}
