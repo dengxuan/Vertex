@@ -11,19 +11,15 @@ Every language implementation ([vertex-dotnet](https://github.com/dengxuan/verte
 ```
 protos/
 └── vertex/
-    └── v1/              ← wire format v1; additive-only evolution
-        ├── envelope.proto           (reserved for future Envelope-as-proto migration; unused by wire v1)
-        └── transport/
-            └── grpc/
-                └── v1/
-                    └── bidi.proto   (the TransportFrame used by Vertex.Transport.Grpc)
+    └── transport/
+        └── grpc/
+            └── v1/
+                └── bidi.proto   (TransportFrame + Bidi service for Vertex.Transport.Grpc)
 ```
 
 ## Versioning
 
-The directory (`vertex/v1/`, `vertex/v2/`, …) is the wire format version. Within a version, changes must be backwards-compatible by Protobuf rules (only add fields, never repurpose tags, never change types, never make required fields optional).
-
-Breaking changes require a new version directory AND coordinated rollout across all languages. See [`/spec/wire-format.md`](../spec/wire-format.md) § 5.
+Each proto's version lives in **one place only** — both the directory segment (`v1/`) and the proto package (`vertex.transport.grpc.v1`). No double-versioning in the path. Within a version, changes must be backwards-compatible by Protobuf rules (additive only). Breaking changes require a new version directory (`v2/`) AND a coordinated rollout across all implementations. See [`/spec/wire-format.md`](../spec/wire-format.md) § 5.
 
 ## Codegen
 
