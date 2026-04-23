@@ -1,37 +1,8 @@
-# === .NET ===
-bin/
-obj/
-*.user
-*.suo
-.vs/
-TestResults/
-coverage/
-coveragereport/
-*.nupkg
-*.snupkg
-nupkgs/
-artifacts/
+# Spec repo — no language-specific build artifacts expected here.
+# Language implementations live in separate repos with their own .gitignore.
 
-# === Go ===
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-# Test binary
-*.test
-# Output of `go test -coverprofile`
-*.out
-# Go workspace file
-go.work
-go.work.sum
-# Go module vendor directory (we prefer modules cache over vendoring by default)
-vendor/
-
-# === Protobuf codegen ===
-# Generated files live in each language's source tree; regenerate via the lang's build system.
-# (Keep .proto sources under /protos/; do not gitignore them.)
+# === Compat orchestration may clone impl repos locally under /compat/_work/ ===
+compat/_work/
 
 # === IDE ===
 .idea/

@@ -12,8 +12,8 @@ syntax = "proto3";
 
 package vertex.v1.transport.grpc.v1;
 
-option csharp_namespace = "Vertex.Dotnet.Transport.Grpc.Protocol";
-option go_package = "github.com/dengxuan/vertex/go/transport/grpc/protocol;protocol";
+option csharp_namespace = "Vertex.Transport.Grpc.Protocol.V1";
+option go_package = "github.com/dengxuan/vertex-go/transport/grpc/protocol/v1;protocolv1";
 
 service Bidi {
   // Single bidirectional stream. Client connects once and exchanges an

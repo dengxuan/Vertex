@@ -4,6 +4,8 @@ Shared Protobuf definitions used by Vertex itself. These are **NOT** business me
 
 Business messages (the payloads Vertex carries) are defined in YOUR repo, not here.
 
+Every language implementation ([vertex-dotnet](https://github.com/dengxuan/vertex-dotnet), [vertex-go](https://github.com/dengxuan/vertex-go), …) pulls these protos via their language's protoc toolchain and regenerates.
+
 ## Layout
 
 ```

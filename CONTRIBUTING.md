@@ -1,118 +1,86 @@
-# Contributing to Vertex
+# Contributing to Vertex (spec repository)
 
 Thanks for your interest!
 
-Vertex is a **multi-language monorepo**. This changes contribution mechanics compared to a single-language project — please read carefully.
+**This repository is the spec.** Code implementations live in per-language repos ([vertex-dotnet](https://github.com/dengxuan/vertex-dotnet), [vertex-go](https://github.com/dengxuan/vertex-go), …). Rules here are tuned for **protocol-level changes**, not day-to-day code changes — those go in the respective impl repo.
 
 ---
 
-## Structure at a glance
+## What lives here
 
 ```
-vertex/
-├── spec/          ← authoritative wire & contract specs (language-neutral)
-├── protos/        ← shared .proto files
-├── dotnet/        ← .NET implementation (Vertex.Dotnet.* NuGet packages)
-├── go/            ← Go implementation (github.com/dengxuan/vertex/go)
-├── compat/        ← cross-language end-to-end tests
-└── docs/          ← user-facing tutorials & guides (not spec)
+Vertex/
+├── spec/            ← authoritative documents (normative)
+│   ├── wire-format.md
+│   └── transport-contract.md
+├── protos/          ← shared .proto files, referenced by every impl
+├── compat/          ← cross-language end-to-end tests (multi-repo orchestration)
+└── docs/            ← project-level docs (governance, release policy, …)
 ```
-
----
 
 ## Types of changes
 
-### A. Bug fix or feature inside a single language
+### A. Wire-spec change (`/spec/*`)
 
-If your change only touches `/dotnet/` OR only touches `/go/` AND does not change wire bytes, submit a single PR scoped to that language. No cross-language coordination needed.
+These are **normative** and affect every language implementation. Process:
 
-### B. Wire-spec change
+1. **Open an issue first** describing the intended change and rationale. Tag `spec`.
+2. In the PR under this repo:
+   - Update `/spec/*.md` to describe the new behavior.
+   - Bump the spec version if the change is breaking (`wire-format.md § 5`).
+3. **Open companion PRs** in each affected impl repo to bring it in line. These PRs cross-reference the spec PR.
+4. **Merge order**: spec PR merges **last**, after every impl PR is approved & green. This keeps `main` of the spec repo always describing reality.
+5. Run `/compat/` tests end-to-end to verify all implementations interoperate on the new spec.
 
-Any change under `/spec/` is **normative** and affects every language implementation. Process:
+**Approval rule**: at least one maintainer per currently-shipped language must approve before the spec PR merges.
 
-1. Open an issue first describing the intended change and rationale.
-2. In your PR:
-   - Update `/spec/*` files.
-   - Update ALL language implementations to conform.
-   - Update `/compat/` tests so cross-language interop is verified.
-3. A wire-spec change requires approval from at least one maintainer per affected language.
+### B. Shared `.proto` change (`/protos/*`)
 
-If you want to propose a wire change but cannot implement all languages yourself, open the issue and tag `help wanted` / `protocol` — we will pair you with contributors from the missing languages.
+Semver-compatible evolution: additive only within the same version directory (`/protos/vertex/v1/`); breaking changes require a new version directory (`v1` → `v2`). `buf breaking` will be wired up in CI.
 
-### C. Proto change under `/protos/`
+Each impl repo re-runs its protoc toolchain when the shared protos change.
 
-Use `buf` for lint/breaking-change detection (CI enforces this once added). Any proto file under `/protos/vertex/*/` follows semver-compatible evolution: additive only within the same version directory; breaking changes require a new version directory (`v1` → `v2`).
+### C. `/compat/` test / fixture change
+
+`/compat/` orchestrates running vertex-dotnet and vertex-go against each other. Changes here don't need multi-impl sign-off but should pass locally against current `main` of all impl repos.
+
+### D. `/docs/` or `README.md` change
+
+Single-reviewer approval, no spec / compat impact.
 
 ---
 
 ## Branch strategy
 
-- `main` — stable, continuously releasable (or `-rc`-tagged releases)
-- `release/*` — long-lived branches for major-version rewrites (if any)
-- Feature branches: `feature/<issue>-<slug>`, `fix/<issue>-<slug>`, `spec/<slug>`, etc.
-
-Default target branch for PRs is `main`.
+- `main` — continuously releasable. Spec versions are frozen by tags (`v1.0.0-spec`, etc.).
+- Feature branches: `feature/<issue>-<slug>`, `spec/<slug>`, `fix/<issue>-<slug>`.
 
 ---
 
 ## Commit / PR conventions
 
-- [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, `spec:` (Vertex-specific)
-- PR title = commit title (we squash-merge single-commit PRs, preserving that title)
-- PR description should include:
-  - What changed
-  - Why (link to issue for non-trivial changes)
-  - Test plan (especially relevant for wire-spec / protocol changes: must run `/compat/` tests)
+- [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `chore:`, `spec:` (Vertex-specific).
+- PR title = commit title.
+- PR body must include:
+  - Summary of the change.
+  - Which impl repos need companion PRs (if any). Link them.
+  - Test plan: for spec changes, reference the `/compat/` run.
 
 ---
 
-## Local development
+## Versioning
 
-### .NET
-
-```bash
-cd dotnet
-dotnet restore
-dotnet test
-```
-
-### Go
-
-```bash
-cd go
-go mod download
-go test ./...
-```
-
-### Cross-language compat
-
-```bash
-cd compat
-# (TBD — docker-compose + runner scripts)
-```
-
----
-
-## Versioning and release
-
-Vertex follows SemVer per language package:
-
-- **.NET**: `Vertex.Dotnet.*` NuGet packages, versioned by MinVer from `v<major>.<minor>.<patch>` git tags on `main`.
-- **Go**: module `github.com/dengxuan/vertex/go`, versioned by Go module tags `go/v<major>.<minor>.<patch>`.
-
-**Wire-format version** is separate from package versions. Wire v1 can span many v1.x.y package releases. A wire v2 would coincide with major bumps in every language package.
+The **spec** is versioned separately from any impl package. See [`spec/wire-format.md § 5`](./spec/wire-format.md). Breaking changes produce a new major (wire v1 → v2). Implementations declare which wire version they support.
 
 ---
 
 ## Governance
 
-Vertex is currently maintained by a small team. All PRs need approval from at least one maintainer of each affected language. Wire-spec PRs need at least one maintainer of each shipped language (today: .NET + Go, once Go is online).
-
-New maintainers are added based on sustained contributions in a given language.
+Vertex is maintained by a small team. Spec PRs require multi-language approval. Impl repos are governed by their own maintainers.
 
 ---
 
-## Questions / help
+## Where else to go
 
-- [GitHub Discussions](https://github.com/dengxuan/Vertex/discussions) for design questions, language support requests, interop issues
-- [GitHub Issues](https://github.com/dengxuan/Vertex/issues) for bugs and concrete tasks
+- **Code bug or language-specific feature request?** Open the issue in the corresponding impl repo ([vertex-dotnet](https://github.com/dengxuan/vertex-dotnet) / [vertex-go](https://github.com/dengxuan/vertex-go)).
+- **Question about the spec, interop, or multi-language design?** Issue or Discussion here.

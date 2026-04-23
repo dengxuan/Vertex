@@ -100,11 +100,12 @@ When writing a new transport, verify each item **before merging**:
 
 ## Known reference implementations
 
-| Transport | Status | Languages | Satisfies invariants via |
-|---|---|---|---|
-| ZeroMQ (Pub/Sub + Router/Dealer) | 🚧 porting from Skywalker | .NET | Native multi-frame; `NetMQQueue` enqueue is atomic; events from `NetMQMonitor` only |
-| gRPC bidi | 🚧 porting from Skywalker | .NET | Explicit `_writeLock.WaitAsync(ct)` + non-cancellable `WriteAsync` body |
-| gRPC bidi | ⏳ planned | Go | TBD — will mirror .NET strategy |
+Listed per language repo:
+
+| Transport | .NET ([vertex-dotnet](https://github.com/dengxuan/vertex-dotnet)) | Go ([vertex-go](https://github.com/dengxuan/vertex-go)) |
+|---|---|---|
+| ZeroMQ (Pub/Sub + Router/Dealer) | 🚧 porting from Skywalker. Native multi-frame; `NetMQQueue` enqueue is atomic; events from `NetMQMonitor` only | ⏳ planned |
+| gRPC bidi | 🚧 porting from Skywalker. Explicit `_writeLock.WaitAsync(ct)` + non-cancellable `WriteAsync` body | ⏳ planned — will mirror .NET strategy |
 
 ---
 

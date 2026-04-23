@@ -16,7 +16,7 @@ syntax = "proto3";
 package vertex.v1;
 
 option csharp_namespace = "Vertex.Protocol.V1";
-option go_package = "github.com/dengxuan/vertex/go/protocol/v1;protocolv1";
+option go_package = "github.com/dengxuan/vertex-go/protocol/v1;protocolv1";
 
 // Placeholder. See file-level comment.
 message Reserved {}
