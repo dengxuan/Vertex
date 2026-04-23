@@ -52,13 +52,10 @@ func main() {
 		os.Exit(3)
 	}
 
-	// Give the server a tick to drain the in-flight frames before we close
-	// the gRPC stream. Without this, the server occasionally observes the
-	// stream close before the frame is fully dispatched to the
-	// MessagingChannel — the 4 frames are on the wire, but Kestrel tears
-	// down the HTTP/2 stream the moment we return.
-	time.Sleep(envDuration("HELLO_DRAIN_MS", 500*time.Millisecond))
-
+	// No sleep-before-Close workaround: vertex-go's transport.Close is now
+	// graceful — it half-closes the stream via CloseSend (flushing buffered
+	// frames) and waits for the server's response side to close before
+	// cancelling. See vertex-go commit 5e41b8d.
 	fmt.Printf("client: published HelloEvent{greeting=%q}\n", ev.Greeting)
 }
 

@@ -2,10 +2,6 @@ module vertex-hello-compat
 
 go 1.24.0
 
-// The compat test consumes vertex-go via a sibling-clone replace directive.
-// Users must clone dengxuan/vertex-go next to Vertex/ — see ../README.md.
-replace github.com/dengxuan/vertex-go => ../../../../vertex-go
-
 require (
 	github.com/dengxuan/vertex-go v0.0.0
 	google.golang.org/protobuf v1.36.11
@@ -18,3 +14,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260120221211-b8f7ae30c516 // indirect
 	google.golang.org/grpc v1.80.0 // indirect
 )
+
+replace github.com/dengxuan/vertex-go => ../../../../vertex-go
