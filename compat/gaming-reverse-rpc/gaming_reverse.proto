@@ -1,0 +1,49 @@
+// Licensed to the Gordon under one or more agreements.
+// Gordon licenses this file to you under the MIT license.
+
+// Minimal subset of L8CHAT/gaming-protos/feivoo/gaming/messages/channel-member-order.proto
+// — only OrderSubmit + OrderSubmitAck + the enum they reference. This is
+// the reverse-RPC path: Gaming (platform) invokes OrderSubmit on the
+// client handler; client returns OrderSubmitAck (order_id, balance).
+//
+// Keep package `feivoo.gaming` and field numbers in sync with upstream
+// so the topic name matches on both sides:
+//
+//   feivoo.gaming.OrderSubmit    (request)
+//   feivoo.gaming.OrderSubmitAck (response)
+
+syntax = "proto3";
+
+package feivoo.gaming;
+
+option csharp_namespace = "Feivoo.Gaming.Grpc";
+option go_package = "vertex-gaming-reverse-rpc-compat/gen;gen";
+
+import "google/protobuf/timestamp.proto";
+
+enum LotteryOrderType {
+  LOTTERY_ORDER_TYPE_UNKNOWN = 0;
+  LOTTERY_ORDER_TYPE_TG_GROUP = 1;
+  LOTTERY_ORDER_TYPE_TG_MINI_APP = 2;
+  LOTTERY_ORDER_TYPE_TG_ROBOT = 3;
+  LOTTERY_ORDER_TYPE_THIRD_PARTY = 4;
+}
+
+message OrderSubmit {
+  string message_id = 1;
+  string channel_id = 2;
+  string user_id = 3;
+  string lottery_play_id = 4;
+  string issue_number = 5;
+  string currency_id = 6;
+  double betting_amount = 7;
+  double betting_odds = 8;
+  repeated string betting_numbers = 9;
+  LotteryOrderType order_type = 10;
+  google.protobuf.Timestamp order_time = 11;
+}
+
+message OrderSubmitAck {
+  string order_id = 1;
+  double balance_amount = 2;
+}

@@ -1,0 +1,29 @@
+// Licensed to the Gordon under one or more agreements.
+// Gordon licenses this file to you under the MIT license.
+
+// Minimal subset of L8CHAT/gaming-protos/feivoo/gaming/messages/issue-number.proto
+// — only the IssueOpening event this compat exercises.
+//
+// Keep package `feivoo.gaming` and the field numbers in sync with the
+// upstream proto so MessageTopic.For<T>() matches on both sides:
+//
+//   feivoo.gaming.IssueOpening
+//
+// This is strictly a server → client broadcast (no response expected).
+
+syntax = "proto3";
+
+package feivoo.gaming;
+
+option csharp_namespace = "Feivoo.Gaming.Grpc";
+option go_package = "vertex-gaming-event-push-compat/gen;gen";
+
+import "google/protobuf/timestamp.proto";
+
+message IssueOpening {
+  string channel_id = 1;
+  string lottery_game_id = 2;
+  string issue_number = 3;
+  google.protobuf.Timestamp open_time = 4;
+  google.protobuf.Timestamp stop_time = 5;
+}

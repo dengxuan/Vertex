@@ -1,0 +1,12 @@
+bin/
+obj/
+*.user
+
+go-client/go-client
+go-client/go-client.exe
+go-client/main
+go-client/main.exe
+go-client/vertex-*-compat
+go-client/vertex-*-compat.exe
+
+server.log
