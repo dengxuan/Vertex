@@ -1,0 +1,10 @@
+bin/
+obj/
+*.user
+
+# Go test binaries
+go-client/main
+go-client/go-client
+
+# Server log written by run.sh (if we switch to file-based capture later)
+server.log
