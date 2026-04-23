@@ -1,0 +1,44 @@
+name: Go Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'go/**'
+      - 'protos/**'
+      - '.github/workflows/go-test.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'go/**'
+      - 'protos/**'
+      - '.github/workflows/go-test.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: go
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Tidy check
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum || (echo "go.mod/go.sum drift"; exit 1)
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race -cover ./...
