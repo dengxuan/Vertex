@@ -9,21 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\vertex-dotnet\src\Vertex.Messaging\Vertex.Messaging.csproj" />
-    <ProjectReference Include="..\..\..\..\vertex-dotnet\src\Vertex.Transport.Grpc\Vertex.Transport.Grpc.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.66.0" />
-    <PackageReference Include="Google.Protobuf" Version="3.28.3" />
-    <PackageReference Include="Grpc.Tools" Version="2.66.0">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Protobuf Include="..\wallet.proto" ProtoRoot="..\" GrpcServices="None" />
+    <!-- Exercise the real Feivoo.Payment.GrpcServer.Abstractions DI extension
+         so we catch any wiring-level bug before the real Payment server hits
+         it in production. Pulls in Vertex.Messaging + Vertex.Transport.Grpc
+         transitively. -->
+    <ProjectReference Include="..\..\..\..\..\L8CHAT\payment-dotnet-sdk\src\Feivoo.Payment.GrpcServer.Abstractions\Feivoo.Payment.GrpcServer.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

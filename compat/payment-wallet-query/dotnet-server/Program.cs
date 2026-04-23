@@ -1,25 +1,28 @@
 // Licensed to the Gordon under one or more agreements.
 // Gordon licenses this file to you under the MIT license.
 
-// compat/payment-wallet-query — .NET server side. Models what a
-// Vertex-based Feivoo Payment wallet server would look like for one RPC
-// (WalletBalanceQuery → WalletBalanceQueryAck). Exits 0 after handling
-// the first request; exits 1 on timeout.
+// compat/payment-wallet-query — .NET server. Validates the full DI
+// wiring path used by the real Feivoo Payment service:
 //
-// This scenario exists to prove that the rewritten payment-go-sdk
-// (consuming vertex-go) actually talks on-wire to a Vertex server.
-// No real auth / DB / business logic — just handler echoes a canned
-// balance keyed off the request fields.
+//   AddFeivooPaymentGrpcServer<THandler, TAuth>()
+//     └→ auth interceptor + Vertex grpc transport + messaging channel
+//     └→ 9× AddRpcHandler<TReq, TResp, THandler>("feivoo-payment-wallet")
+//
+// A FakeWalletHandler implements all 9 IRpcHandler<> interfaces so the
+// generic constraint is satisfied; only the WalletBalanceQuery path is
+// exercised by the compat's Go client — the other 8 throw (they should
+// never be called in this scenario).
 
 using System.Net;
 using Feivoo.Payment.Grpc.Proto;
+using Feivoo.Payment.GrpcServer;
+using Feivoo.Payment.GrpcServer.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Vertex.Messaging;
-using Vertex.Transport.Grpc;
 
 var port = int.Parse(Environment.GetEnvironmentVariable("PAYMENT_WALLET_QUERY_PORT") ?? "50055");
 var timeoutMs = int.Parse(Environment.GetEnvironmentVariable("PAYMENT_WALLET_QUERY_TIMEOUT_MS") ?? "15000");
@@ -36,19 +39,10 @@ builder.WebHost.ConfigureKestrel(o =>
     o.Listen(IPAddress.Loopback, port, l => l.Protocols = HttpProtocols.Http2);
 });
 
-// Channel name must match the Go SDK's hard-coded channelName
-// ("feivoo-payment-wallet"). If either side drifts, the messaging layer
-// can't correlate pending invokes.
-const string ChannelName = "feivoo-payment-wallet";
-
-builder.Services.AddGrpc();
-builder.Services.AddGrpcServerTransport(ChannelName);
-builder.Services.AddMessagingChannel(ChannelName,
-    reg => reg.RegisterRequest<WalletBalanceQuery, WalletBalanceQueryAck>());
-builder.Services.AddRpcHandler<WalletBalanceQuery, WalletBalanceQueryAck, WalletBalanceQueryHandler>(ChannelName);
+builder.Services.AddFeivooPaymentGrpcServer<FakeWalletHandler, AllowAllAuthenticator>();
 
 var app = builder.Build();
-app.MapGrpcService<BidiServiceImpl>();
+app.MapFeivooPaymentGrpcServer();
 
 await app.StartAsync();
 Console.WriteLine($"server: listening on http://127.0.0.1:{port} (timeout {timeoutMs}ms)");
@@ -56,7 +50,7 @@ Console.WriteLine($"server: listening on http://127.0.0.1:{port} (timeout {timeo
 try
 {
     using var cts = new CancellationTokenSource(timeoutMs);
-    var req = await WalletBalanceQueryHandler.ReceivedTcs.Task.WaitAsync(cts.Token);
+    var req = await FakeWalletHandler.ReceivedTcs.Task.WaitAsync(cts.Token);
 
     if (req.UserId != expectedUserId || req.CurrencyId != expectedCurrency)
     {
@@ -78,15 +72,32 @@ finally
     await app.StopAsync();
 }
 
-public class WalletBalanceQueryHandler : IRpcHandler<WalletBalanceQuery, WalletBalanceQueryAck>
+// ── fixtures ───────────────────────────────────────────────────────────
+
+public sealed class AllowAllAuthenticator : IPaymentServerAuthenticator
 {
-    // Single-shot TCS so Program.cs can observe "a request arrived" and
-    // exit 0 once we've echoed back a response. Real Payment server
-    // obviously serves unbounded requests.
+    public Task<PaymentPrincipal?> AuthenticateAsync(string accessId, string secretKey, CancellationToken cancellationToken = default)
+        => Task.FromResult<PaymentPrincipal?>(new PaymentPrincipal(accessId));
+}
+
+public sealed class FakeWalletHandler :
+    IRpcHandler<WalletBalanceQuery, WalletBalanceQueryAck>,
+    IRpcHandler<WalletAllBalancesQuery, WalletAllBalancesQueryAck>,
+    IRpcHandler<WalletTransfer, WalletTransferAck>,
+    IRpcHandler<WalletFreeze, WalletFreezeAck>,
+    IRpcHandler<WalletUnfreeze, WalletUnfreezeAck>,
+    IRpcHandler<WalletFreezeWithTransfer, WalletFreezeWithTransferAck>,
+    IRpcHandler<WalletUnfreezeWithTransfer, WalletUnfreezeWithTransferAck>,
+    IRpcHandler<WalletBalanceAdd, WalletBalanceAddAck>,
+    IRpcHandler<WalletBalanceSubtract, WalletBalanceSubtractAck>
+{
+    // Program main awaits this to observe that the Go client's query actually
+    // reached the handler; the single-shot TCS fires once then exit 0.
     public static readonly TaskCompletionSource<WalletBalanceQuery> ReceivedTcs =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    public ValueTask<WalletBalanceQueryAck> HandleAsync(RpcContext<WalletBalanceQuery> ctx, CancellationToken ct)
+    ValueTask<WalletBalanceQueryAck> IRpcHandler<WalletBalanceQuery, WalletBalanceQueryAck>.HandleAsync(
+        RpcContext<WalletBalanceQuery> ctx, CancellationToken ct)
     {
         ReceivedTcs.TrySetResult(ctx.Request);
         return ValueTask.FromResult(new WalletBalanceQueryAck
@@ -99,4 +110,18 @@ public class WalletBalanceQueryHandler : IRpcHandler<WalletBalanceQuery, WalletB
             },
         });
     }
+
+    // The remaining 8 satisfy the generic constraint but should never fire
+    // in this scenario; trip loudly if they do.
+    ValueTask<WalletAllBalancesQueryAck> IRpcHandler<WalletAllBalancesQuery, WalletAllBalancesQueryAck>.HandleAsync(RpcContext<WalletAllBalancesQuery> c, CancellationToken t) => throw Unexpected("WalletAllBalancesQuery");
+    ValueTask<WalletTransferAck> IRpcHandler<WalletTransfer, WalletTransferAck>.HandleAsync(RpcContext<WalletTransfer> c, CancellationToken t) => throw Unexpected("WalletTransfer");
+    ValueTask<WalletFreezeAck> IRpcHandler<WalletFreeze, WalletFreezeAck>.HandleAsync(RpcContext<WalletFreeze> c, CancellationToken t) => throw Unexpected("WalletFreeze");
+    ValueTask<WalletUnfreezeAck> IRpcHandler<WalletUnfreeze, WalletUnfreezeAck>.HandleAsync(RpcContext<WalletUnfreeze> c, CancellationToken t) => throw Unexpected("WalletUnfreeze");
+    ValueTask<WalletFreezeWithTransferAck> IRpcHandler<WalletFreezeWithTransfer, WalletFreezeWithTransferAck>.HandleAsync(RpcContext<WalletFreezeWithTransfer> c, CancellationToken t) => throw Unexpected("WalletFreezeWithTransfer");
+    ValueTask<WalletUnfreezeWithTransferAck> IRpcHandler<WalletUnfreezeWithTransfer, WalletUnfreezeWithTransferAck>.HandleAsync(RpcContext<WalletUnfreezeWithTransfer> c, CancellationToken t) => throw Unexpected("WalletUnfreezeWithTransfer");
+    ValueTask<WalletBalanceAddAck> IRpcHandler<WalletBalanceAdd, WalletBalanceAddAck>.HandleAsync(RpcContext<WalletBalanceAdd> c, CancellationToken t) => throw Unexpected("WalletBalanceAdd");
+    ValueTask<WalletBalanceSubtractAck> IRpcHandler<WalletBalanceSubtract, WalletBalanceSubtractAck>.HandleAsync(RpcContext<WalletBalanceSubtract> c, CancellationToken t) => throw Unexpected("WalletBalanceSubtract");
+
+    private static InvalidOperationException Unexpected(string topic)
+        => new($"compat/payment-wallet-query scenario only exercises WalletBalanceQuery; got {topic}");
 }
