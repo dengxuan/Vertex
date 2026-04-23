@@ -1,0 +1,22 @@
+// Licensed to the Gordon under one or more agreements.
+// Gordon licenses this file to you under the MIT license.
+
+syntax = "proto3";
+
+package vertex.compat.hello_disconnect.v1;
+
+option csharp_namespace = "Vertex.Compat.HelloDisconnect.V1";
+option go_package = "vertex-hello-disconnect-compat/gen;gen";
+
+// Ping/Pong with a server-boot identifier. The server generates a fresh
+// ServerBoot value on each process start, so a client that observes two
+// different ServerBoot values has proven that its Transport successfully
+// reconnected to a new server process after a disconnect.
+message PingRequest {
+  string id = 1;
+}
+
+message PongResponse {
+  string id          = 1;
+  string server_boot = 2;
+}

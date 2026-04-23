@@ -1,0 +1,8 @@
+bin/
+obj/
+*.user
+
+go-client/main
+go-client/go-client
+
+server.log
