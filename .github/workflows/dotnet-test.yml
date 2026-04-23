@@ -30,15 +30,29 @@ jobs:
         with:
           fetch-depth: 0  # MinVer needs full history
 
+      - name: Check for .NET code
+        id: haveCode
+        run: |
+          if ls *.sln 2>/dev/null | head -n1 >/dev/null; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "No .sln under /dotnet yet — skipping build/test. This is expected during the initial spin-out from Skywalker."
+          fi
+
       - uses: actions/setup-dotnet@v5
+        if: steps.haveCode.outputs.present == 'true'
         with:
           dotnet-version: '8.0.x'
 
       - name: Restore
+        if: steps.haveCode.outputs.present == 'true'
         run: dotnet restore
 
       - name: Build
+        if: steps.haveCode.outputs.present == 'true'
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
+        if: steps.haveCode.outputs.present == 'true'
         run: dotnet test --configuration Release --no-build
