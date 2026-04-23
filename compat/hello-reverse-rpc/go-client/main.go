@@ -63,7 +63,10 @@ func main() {
 		os.Exit(3)
 	}
 
-	// Wait for one request to be handled.
+	// Wait for one request to be handled. After this fires, the deferred
+	// channel.Close will drain the dispatcher goroutine (up to its
+	// closeDrainTimeout) so the handler's response reaches the wire
+	// before process exit — see vertex-go messaging channel docstring.
 	select {
 	case req := <-handled:
 		fmt.Printf("client: PASS — handled HelloRequest{name=%q}\n", req.Name)
@@ -71,13 +74,6 @@ func main() {
 		fmt.Fprintf(os.Stderr, "client: FAIL — timed out after %s waiting for inbound HelloRequest\n", waitBudget)
 		os.Exit(4)
 	}
-
-	// The handler returned its response on the dispatcher goroutine;
-	// that goroutine still needs to call transport.Send before we tear
-	// the channel down. channel.Close cancels its lifetime ctx, which
-	// aborts any in-flight send. A brief pause gives the response a
-	// chance to reach the wire before we exit.
-	time.Sleep(500 * time.Millisecond)
 }
 
 func env(name, def string) string {
