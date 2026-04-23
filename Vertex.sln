@@ -1,0 +1,35 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "compat", "compat", "{8DAABD4A-9466-E508-005B-9984CD970E9A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "hello", "hello", "{E08095B9-C35A-9C70-FC8E-5369AA763E07}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet-server", "dotnet-server", "{E46C318F-9601-D921-566E-D9331813D010}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloServer", "compat\hello\dotnet-server\HelloServer.csproj", "{38D3DCF8-9CE7-4B45-C3AE-8D163C0389F0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{38D3DCF8-9CE7-4B45-C3AE-8D163C0389F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38D3DCF8-9CE7-4B45-C3AE-8D163C0389F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38D3DCF8-9CE7-4B45-C3AE-8D163C0389F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38D3DCF8-9CE7-4B45-C3AE-8D163C0389F0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E08095B9-C35A-9C70-FC8E-5369AA763E07} = {8DAABD4A-9466-E508-005B-9984CD970E9A}
+		{E46C318F-9601-D921-566E-D9331813D010} = {E08095B9-C35A-9C70-FC8E-5369AA763E07}
+		{38D3DCF8-9CE7-4B45-C3AE-8D163C0389F0} = {E46C318F-9601-D921-566E-D9331813D010}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3B3AE8B6-8C69-401E-B9C8-2FBC86F69298}
+	EndGlobalSection
+EndGlobal

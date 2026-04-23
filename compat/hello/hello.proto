@@ -1,0 +1,15 @@
+// Test-only business message for the /compat/hello scenario.
+// Both .NET and Go sides regenerate code from this file.
+
+syntax = "proto3";
+
+package vertex.compat.hello.v1;
+
+option csharp_namespace = "Vertex.Compat.Hello.V1";
+option go_package = "vertex-hello-compat/gen;gen";
+
+// Minimal event used to prove wire compat: a Go client Publishes one of
+// these to a .NET server that subscribed to the same type.
+message HelloEvent {
+  string greeting = 1;
+}
