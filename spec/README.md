@@ -8,6 +8,7 @@ This directory contains **normative** documents. Every Vertex implementation —
 |---|---|---|
 | [`wire-format.md`](./wire-format.md) | Byte-level envelope + transport framing | Anyone implementing a new transport in any language |
 | [`transport-contract.md`](./transport-contract.md) | Four transport invariants (ironclad rules) | Everyone implementing or debugging a transport |
+| [`peer-authentication.md`](./peer-authentication.md) | Connection-level metadata-based authentication + opaque per-peer state | Server-side transport authors + apps that need stream-level auth |
 
 ## Compatibility promise
 
