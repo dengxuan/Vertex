@@ -1,0 +1,9 @@
+{
+  "name": "vertex-hello-compat-cpp",
+  "version-string": "0.0.0",
+  "description": "Compat test client; not published. Pulls grpc + protobuf for vertex-cpp + hello.proto codegen.",
+  "dependencies": [
+    "grpc",
+    "protobuf"
+  ]
+}
