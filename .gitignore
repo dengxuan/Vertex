@@ -20,3 +20,7 @@ Thumbs.db
 *.tmp
 _tmp_*/
 tmp/
+
+# === .NET SDK runfile-discovery cache (leaks into the repo when `dotnet run`
+# is invoked from the workspace root; not source). ===
+dotnet/runfile-discovery/

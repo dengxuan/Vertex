@@ -1,0 +1,22 @@
+{
+    "name": "Vertex compat (php + dotnet)",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "workspaceFolder": "/workspaces/Vertex",
+    "//": "compat/hello/run-php.sh expects the implementation repos as siblings of Vertex, matching its ../../.. preflight. VS Code mounts the opened folder (Vertex); we bind-mount the two implementation repos alongside. Adjust the host source paths below if your clones live elsewhere.",
+    "mounts": [
+        "source=${localWorkspaceFolder}/../vertex-php,target=/workspaces/vertex-php,type=bind,consistency=cached",
+        "source=${localWorkspaceFolder}/../vertex-dotnet,target=/workspaces/vertex-dotnet,type=bind,consistency=cached"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "bmewburn.vscode-intelephense-client",
+                "ms-dotnettools.csharp",
+                "golang.go"
+            ]
+        }
+    },
+    "postCreateCommand": "dotnet --version && php -v && php -m | grep -i swoole && composer --version && protoc --version && go version"
+}
