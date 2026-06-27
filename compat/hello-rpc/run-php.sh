@@ -12,24 +12,26 @@ WORKSPACE="$(cd "../../.." && pwd)"
   || { echo "error: clone dengxuan/vertex-dotnet at $WORKSPACE/vertex-dotnet" >&2; exit 1; }
 [[ -d "$WORKSPACE/vertex-php" ]] \
   || { echo "error: clone dengxuan/vertex-php at $WORKSPACE/vertex-php" >&2; exit 1; }
+# The SDK owns its dependencies (google/protobuf et al.), exactly like go-client
+# relies on the sibling vertex-go module. compat installs nothing of its own —
+# it just uses the SDK. Mirrors run.sh checking $WORKSPACE/vertex-go.
+[[ -f "$WORKSPACE/vertex-php/vendor/autoload.php" ]] \
+  || { echo "error: run 'composer install' in $WORKSPACE/vertex-php (the SDK owns its deps)" >&2; exit 1; }
 
-# Toolchain pre-flight: PHP with ext-swoole + composer.
+# Toolchain pre-flight: PHP with ext-swoole.
 command -v php >/dev/null \
   || { echo "error: php not found on PATH" >&2; exit 1; }
 php -m | grep -qi '^swoole$' \
   || { echo "error: ext-swoole not loaded (php -m | grep swoole). Install it: pecl install swoole" >&2; exit 1; }
-command -v composer >/dev/null \
-  || { echo "error: composer not found on PATH" >&2; exit 1; }
 
 PORT="${HELLO_RPC_PORT:-50052}"
 export HELLO_RPC_PORT="$PORT"
 export HELLO_RPC_TIMEOUT_MS="${HELLO_RPC_TIMEOUT_MS:-15000}"
 export HELLO_RPC_ROOM_NAME="${HELLO_RPC_ROOM_NAME:-lobby}"
 
-# One-shot client setup: install google/protobuf and (re)generate the message
-# classes from the shared hello_rpc.proto. Cheap to repeat; idempotent.
-echo "→ preparing php-client (composer install + protoc)"
-(cd php-client && composer install --no-interaction --quiet)
+# (Re)generate the message classes from the shared hello_rpc.proto. Like the
+# Go variant regenerating its gen/ — the only client-side prep compat does.
+echo "→ generating php-client message classes (protoc)"
 protoc --proto_path=. --php_out=php-client/gen hello_rpc.proto
 
 # Server teardown on any exit path.

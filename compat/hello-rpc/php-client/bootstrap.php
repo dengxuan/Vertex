@@ -3,42 +3,40 @@
 // Licensed to the Gordon under one or more agreements.
 // Gordon licenses this file to you under the MIT license.
 
-// Minimal autoloader for the compat php-client. Wires up three roots without
-// requiring a composer install of the sibling vertex-php SDK (mirrors how
-// go-client uses a `replace` directive and cpp-client uses add_subdirectory to
-// reference the sibling implementation directly while the spec repo is the
-// source of truth).
+// Autoloader for the compat php-client. Like go-client's `replace` directive
+// (and cpp-client's add_subdirectory), this references the sibling vertex-php
+// SDK directly rather than depending on anything of its own — the SDK owns its
+// dependencies (google/protobuf et al.), the compat client just uses them.
 //
-//   1. google/protobuf runtime  — must already be installed via composer here
-//   2. generated HelloEvent      — ./gen (protoc --php_out output)
-//   3. vertex-php SDK            — ../../../../vertex-php/src (sibling clone)
+// The sibling SDK's composer autoloader provides BOTH the google/protobuf
+// runtime AND the Vertex\ SDK classes. On top of it we register only the
+// generated message classes that live next to this client (./gen).
 
 declare(strict_types=1);
 
 $here = __DIR__;
-$workspace = \dirname($here, 4); // .../compat/hello/php-client → workspace root
-$sdkSrc = $workspace . '/vertex-php/src';
+$workspace = \dirname($here, 4); // .../compat/hello-rpc/php-client → workspace root
+$sdkRoot = $workspace . '/vertex-php';
 
-if (!\is_dir($sdkSrc)) {
-    fwrite(STDERR, "error: clone dengxuan/vertex-php at {$workspace}/vertex-php\n");
+if (!\is_dir($sdkRoot)) {
+    fwrite(STDERR, "error: clone dengxuan/vertex-php at {$sdkRoot}\n");
     exit(1);
 }
 
-// google/protobuf runtime: installed into ./vendor by run-php.sh's composer step.
-$protobufAutoload = $here . '/vendor/autoload.php';
-if (!\is_file($protobufAutoload)) {
-    fwrite(STDERR, "error: run 'composer install' in php-client/ (needs google/protobuf)\n");
+// The SDK's composer autoload covers google/protobuf and the Vertex\ namespace.
+// The SDK owns its dependencies; run `composer install` in vertex-php if missing.
+$sdkAutoload = $sdkRoot . '/vendor/autoload.php';
+if (!\is_file($sdkAutoload)) {
+    fwrite(STDERR, "error: run 'composer install' in {$sdkRoot} (the SDK owns its deps)\n");
     exit(1);
 }
-require $protobufAutoload;
+require $sdkAutoload;
 
-// PSR-4 for the generated classes (Vertex\Compat\HelloRpc\V1 → ./gen, plus the
-// GPBMetadata bootstrap) and the SDK (Vertex\ → ../../../../vertex-php/src).
-spl_autoload_register(static function (string $class) use ($here, $sdkSrc): void {
+// PSR-4 for the protoc-generated message classes that ship with this client.
+spl_autoload_register(static function (string $class) use ($here): void {
     $map = [
         'Vertex\\Compat\\HelloRpc\\V1\\' => $here . '/gen/Vertex/Compat/HelloRpc/V1/',
-        'GPBMetadata\\'              => $here . '/gen/GPBMetadata/',
-        'Vertex\\'                   => $sdkSrc . '/',
+        'GPBMetadata\\'                  => $here . '/gen/GPBMetadata/',
     ];
     foreach ($map as $prefix => $baseDir) {
         if (\str_starts_with($class, $prefix)) {
