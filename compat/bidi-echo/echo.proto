@@ -1,0 +1,24 @@
+// Test-only messages for the /compat/bidi-echo scenario: a long-lived
+// bidirectional smoke test. The .NET server runs an echo RPC handler that
+// stays up; a client drives many round-trips over one connection for a bounded
+// duration, proving sustained send/receive health on the wire.
+
+syntax = "proto3";
+
+package vertex.compat.bidi_echo.v1;
+
+option csharp_namespace = "Vertex.Compat.BidiEcho.V1";
+option php_namespace = "Vertex\\Compat\\BidiEcho\\V1";
+option go_package = "vertex-bidi-echo-compat/gen;gen";
+
+// Client → server. The server echoes seq + payload straight back.
+message EchoRequest {
+  uint64 seq     = 1;
+  string payload = 2;
+}
+
+// Server → client. Mirrors the request so the client can assert the round-trip.
+message EchoResponse {
+  uint64 seq     = 1;
+  string payload = 2;
+}
