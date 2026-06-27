@@ -1,0 +1,10 @@
+{
+    "name": "dengxuan/vertex-hello-rpc-compat-php-client",
+    "description": "compat/hello-rpc PHP client — invokes the CreateRoom RPC on the .NET server via the sibling vertex-php SDK and verifies the typed response.",
+    "type": "project",
+    "require": {
+        "php": ">=8.2",
+        "ext-swoole": "*",
+        "google/protobuf": "^4.0 || ^5.0"
+    }
+}

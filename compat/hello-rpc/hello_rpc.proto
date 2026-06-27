@@ -6,6 +6,7 @@ syntax = "proto3";
 package vertex.compat.hello_rpc.v1;
 
 option csharp_namespace = "Vertex.Compat.HelloRpc.V1";
+option php_namespace = "Vertex\\Compat\\HelloRpc\\V1";
 option go_package = "vertex-hello-rpc-compat/gen;gen";
 
 // Go client → .NET server.
