@@ -8,6 +8,7 @@
 |---|---|
 | `go-client` → `dotnet-server` | ✅ via `./run.sh` |
 | `cpp-client` → `dotnet-server` | ✅ via `./run-cpp.sh` |
+| `php-client` → `dotnet-server` | ✅ via `./run-php.sh` (needs PHP + ext-swoole; see `.devcontainer/`) |
 
 **Shape**: one-way Publish (`KindEvent`). Simpler than RPC; exercises the full envelope encode → gRPC frame chunking → gRPC frame reassembly → envelope decode → MessagingChannel dispatch pipeline end to end.
 
@@ -85,8 +86,13 @@ compat/hello/
 │   ├── CMakeLists.txt               ← add_subdirectory the sibling vertex-cpp
 │   ├── vcpkg.json                   ← grpc + protobuf for codegen
 │   └── main.cpp                     ← GrpcTransport + MessagingChannel + Publish
+├── php-client/
+│   ├── bootstrap.php                ← autoload sibling vertex-php SDK (owns deps) + ./gen
+│   ├── main.php                     ← GrpcClientTransport + MessagingChannel + publish
+│   └── gen/                         ← protoc --php_out output (checked in)
 ├── run.sh                           ← orchestrator: dotnet-server + go-client
 ├── run-cpp.sh                       ← orchestrator: dotnet-server + cpp-client
+├── run-php.sh                       ← orchestrator: dotnet-server + php-client
 └── README.md                        ← this file
 ```
 
